@@ -1,4 +1,4 @@
-import { getLlmConfig } from '../utils/llm'
+import { getGigaChatConfig } from '../utils/llm'
 
 type IncomingBody = {
   model: string
@@ -6,7 +6,7 @@ type IncomingBody = {
 }
 
 export default defineEventHandler(async (event) => {
-  const { baseUrl, token, gigachatEndpoint } = getLlmConfig(event)
+  const { baseUrl, token, endpoint } = getGigaChatConfig(event)
   const body = await readBody<IncomingBody>(event)
 
   if (!body?.model || !Array.isArray(body?.messages)) {
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return await $fetch(`${baseUrl}${gigachatEndpoint}`, {
+  return await $fetch(`${baseUrl}${endpoint}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,

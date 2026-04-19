@@ -1,26 +1,49 @@
 import type { H3Event } from 'h3'
 
-export const getLlmConfig = (event: H3Event) => {
+export const getGigaChatConfig = (event: H3Event) => {
   const config = useRuntimeConfig(event)
 
-  if (!config.llmBaseUrl) {
+  if (!config.gigaChatBaseUrl) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'LLM_BASE_URL is not configured'
+      statusMessage: 'GIGACHAT_BASE_URL is not configured'
     })
   }
 
-  if (!config.llmToken) {
+  if (!config.gigaChatToken) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'LLM_TOKEN is not configured'
+      statusMessage: 'GIGACHAT_TOKEN is not configured'
     })
   }
 
   return {
-    baseUrl: config.llmBaseUrl as string,
-    token: config.llmToken as string,
-    gigachatEndpoint: config.gigachatEndpoint as string,
-    lmModelsEndpoint: config.lmModelsEndpoint as string
+    baseUrl: config.gigaChatBaseUrl as string,
+    token: config.gigaChatToken as string,
+    endpoint: config.gigachatEndpoint as string
+  }
+}
+
+export const getLmConfig = (event: H3Event) => {
+  const config = useRuntimeConfig(event)
+
+  if (!config.lmBaseUrl) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'LM_BASE_URL is not configured'
+    })
+  }
+
+  if (!config.lmToken) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'LM_TOKEN is not configured'
+    })
+  }
+
+  return {
+    baseUrl: config.lmBaseUrl as string,
+    token: config.lmToken as string,
+    endpoint: config.lmModelsEndpoint as string
   }
 }
