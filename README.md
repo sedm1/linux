@@ -3,7 +3,7 @@
 Минимальный чат-клиент без БД и без аутентификации в UI:
 - список моделей берется с `LM_MODELS_ENDPOINT` (по умолчанию `/V1/models`);
 - сообщения отправляются в `GIGACHAT_ENDPOINT` (по умолчанию `/api/chat`);
-- токены хранятся только на сервере Nuxt, клиент их не видит.
+- токены и upstream-маршрутизация полностью остаются на стороне твоего Nginx.
 
 ## Локальный запуск
 
@@ -27,10 +27,10 @@ docker compose up --build -d
 
 ## Рекомендация для Debian-сервера
 
-Лучше передавать переменные окружения через Docker (`env_file` / `-e`) и не хранить токен в репозитории.
-Минимально нужны:
-- `GIGACHAT_BASE_URL`
-- `GIGACHAT_TOKEN`
-- `LM_BASE_URL`
-- `LM_TOKEN`
-- при необходимости кастомные `GIGACHAT_ENDPOINT` и `LM_MODELS_ENDPOINT`
+Сконфигурируй Nginx так, чтобы:
+- `/api/chat` проксировался в GigaChat;
+- `/V1/models` проксировался в сервис моделей.
+
+Если endpoint отличаются, задай их через env:
+- `GIGACHAT_ENDPOINT`
+- `LM_MODELS_ENDPOINT`

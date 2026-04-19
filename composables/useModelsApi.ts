@@ -13,8 +13,10 @@ const mapModel = (item: { id?: string; name?: string }): LlmModel => ({
 })
 
 export const useModelsApi = () => {
+  const config = useRuntimeConfig()
+
   const getModels = async (): Promise<LlmModel[]> => {
-    const response = await $fetch<ModelsResponse>('/api/models')
+    const response = await $fetch<ModelsResponse>(config.public.lmModelsEndpoint)
     const raw = Array.isArray(response)
       ? response
       : response.data || response.models || []
