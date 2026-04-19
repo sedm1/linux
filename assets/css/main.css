@@ -1,0 +1,14 @@
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#__nuxt {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% -10%, #22314f 0%, #0b1020 35%, #05070f 100%);
+}
