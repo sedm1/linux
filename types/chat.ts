@@ -20,3 +20,8 @@ export type ChatUiMessage = {
   role: ChatRole
   parts: ChatPart[]
 }
+
+export type ChatModel = {
+  id: string
+  name: string
+}

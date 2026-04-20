@@ -1,25 +1,54 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import type { ChatUiMessage } from '~/types/chat'
+import { computed, onMounted, ref } from 'vue'
+import type { ChatModel, ChatUiMessage } from '~/types/chat'
 import { useChatApi } from '~/composables/useChatApi'
+import { useModelsApi } from '~/composables/useModelsApi'
 
 const config = useRuntimeConfig()
 const prompt = ref('')
 const selectedImage = ref<File | null>(null)
+const models = ref<ChatModel[]>([])
+const selectedModel = ref('')
+const loadingModels = ref(false)
 const messages = ref<ChatUiMessage[]>([
   {
     id: crypto.randomUUID(),
     role: 'assistant',
-    parts: [{ type: 'text', text: 'Привет. Напиши сообщение или прикрепи фото.' }]
+    parts: [{ type: 'text', text: 'Привет. Выбери модель, напиши сообщение или прикрепи фото.' }]
   }
 ])
 const sending = ref(false)
 const error = ref('')
 
 const { sendChat } = useChatApi()
+const { getModels } = useModelsApi()
 
 const chatStatus = computed(() => (sending.value ? 'streaming' : 'ready'))
-const canSubmit = computed(() => !sending.value && (Boolean(prompt.value.trim()) || Boolean(selectedImage.value)))
+const canSubmit = computed(() =>
+  !sending.value &&
+  Boolean(selectedModel.value) &&
+  (Boolean(prompt.value.trim()) || Boolean(selectedImage.value))
+)
+
+const loadModels = async () => {
+  loadingModels.value = true
+  error.value = ''
+
+  try {
+    const list = await getModels()
+    models.value = list
+
+    if (selectedModel.value && list.some((m) => m.id === selectedModel.value)) {
+      return
+    }
+
+    selectedModel.value = list.find((m) => m.id === config.public.gigachatModel)?.id || list[0]?.id || ''
+  } catch (e: any) {
+    error.value = e?.message || 'Не удалось загрузить список моделей'
+  } finally {
+    loadingModels.value = false
+  }
+}
 
 const readAsDataUrl = async (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -49,7 +78,7 @@ const uploadImage = async (file: File): Promise<string> => {
 const handleSubmit = async () => {
   const text = prompt.value.trim()
   const image = selectedImage.value
-  if ((!text && !image) || sending.value) return
+  if ((!text && !image) || sending.value || !selectedModel.value) return
 
   error.value = ''
   sending.value = true
@@ -85,7 +114,7 @@ const handleSubmit = async () => {
     prompt.value = ''
     selectedImage.value = null
 
-    const answer = await sendChat(messages.value)
+    const answer = await sendChat(selectedModel.value, messages.value)
     messages.value.push({
       id: crypto.randomUUID(),
       role: 'assistant',
@@ -97,11 +126,37 @@ const handleSubmit = async () => {
     sending.value = false
   }
 }
+
+onMounted(loadModels)
 </script>
 
 <template>
   <UCard class="border-white/10 bg-black/35 backdrop-blur-sm">
     <div class="space-y-4">
+      <div class="flex flex-col gap-2 md:flex-row md:items-center">
+        <USelect
+          v-model="selectedModel"
+          class="md:max-w-md"
+          :items="models"
+          value-key="id"
+          label-key="name"
+          :loading="loadingModels"
+          :disabled="sending || loadingModels"
+          placeholder="Выберите модель"
+        />
+        <UButton
+          class="md:ml-auto"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-refresh-cw"
+          :loading="loadingModels"
+          :disabled="sending"
+          @click="loadModels"
+        >
+          Обновить модели
+        </UButton>
+      </div>
+
       <UChatMessages
         class="h-[52vh] overflow-y-auto pr-2"
         :messages="messages"
@@ -133,7 +188,7 @@ const handleSubmit = async () => {
 
       <UChatPrompt
         v-model="prompt"
-        :disabled="sending"
+        :disabled="sending || !selectedModel"
         placeholder="Напиши сообщение... Enter — отправить, Shift+Enter — новая строка"
         @submit.prevent="handleSubmit"
       >
@@ -148,7 +203,7 @@ const handleSubmit = async () => {
               :preview="false"
               icon="i-lucide-image-plus"
               label="Фото"
-              :disabled="sending"
+              :disabled="sending || !selectedModel"
             />
             <UBadge
               v-if="selectedImage"

@@ -39,11 +39,10 @@ const toBackendMessage = (message: ChatUiMessage): BackendMessage => {
 }
 
 export const useChatApi = () => {
-  const config = useRuntimeConfig()
-
-  const sendChat = async (messages: ChatUiMessage[]): Promise<string> => {
+  const sendChat = async (model: string, messages: ChatUiMessage[]): Promise<string> => {
+    const config = useRuntimeConfig()
     const payload: ChatPayload = {
-      model: config.public.gigachatModel,
+      model,
       messages: messages.map(toBackendMessage)
     }
 

@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     public: {
       gigachatEndpoint: process.env.GIGACHAT_ENDPOINT || '/api/chat',
       gigachatFilesEndpoint: process.env.GIGACHAT_FILES_ENDPOINT || '/api/files',
+      gigachatModelsEndpoint: process.env.GIGACHAT_MODELS_ENDPOINT || '/api/models',
       gigachatModel: process.env.GIGACHAT_MODEL || 'GigaChat'
     }
   },
