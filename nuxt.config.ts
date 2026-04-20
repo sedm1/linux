@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       gigachatEndpoint: process.env.GIGACHAT_ENDPOINT || '/api/chat',
-      lmModelsEndpoint: process.env.LM_MODELS_ENDPOINT || '/V1/models'
+      gigachatModel: process.env.GIGACHAT_MODEL || 'GigaChat'
     }
   },
   compatibilityDate: '2025-10-01'

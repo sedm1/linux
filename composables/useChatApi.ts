@@ -17,7 +17,12 @@ type ChatResponse = {
 export const useChatApi = () => {
   const config = useRuntimeConfig()
 
-  const sendChat = async (payload: ChatPayload): Promise<string> => {
+  const sendChat = async (messages: ChatMessage[]): Promise<string> => {
+    const payload: ChatPayload = {
+      model: config.public.gigachatModel,
+      messages
+    }
+
     const response = await $fetch<ChatResponse>(config.public.gigachatEndpoint, {
       method: 'POST',
       body: payload

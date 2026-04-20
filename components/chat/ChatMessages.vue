@@ -12,14 +12,27 @@ defineProps<{
       <div
         v-for="message in items"
         :key="message.id"
-        class="max-w-[92%] rounded-xl px-4 py-3 text-sm"
-        :class="
-          message.role === 'user'
-            ? 'self-end bg-primary-500/20 text-primary-100'
-            : 'self-start bg-neutral-800/80 text-neutral-100'
-        "
+        class="flex"
+        :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
       >
-        <p class="whitespace-pre-wrap">{{ message.content }}</p>
+        <UCard
+          class="max-w-[92%]"
+          :ui="{
+            body: 'p-3 sm:p-4'
+          }"
+        >
+          <template #header>
+            <div class="flex items-center gap-2">
+              <UBadge
+                :label="message.role === 'user' ? 'Вы' : 'GigaChat'"
+                :color="message.role === 'user' ? 'primary' : 'neutral'"
+                variant="soft"
+              />
+            </div>
+          </template>
+
+          <p class="whitespace-pre-wrap text-sm">{{ message.content }}</p>
+        </UCard>
       </div>
     </div>
   </div>

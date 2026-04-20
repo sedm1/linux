@@ -6,8 +6,3 @@ export type ChatMessage = {
   content: string
   createdAt: string
 }
-
-export type LlmModel = {
-  id: string
-  name: string
-}

@@ -8,5 +8,5 @@ services:
       NITRO_HOST: 0.0.0.0
       NITRO_PORT: 3000
       GIGACHAT_ENDPOINT: ${GIGACHAT_ENDPOINT:-/api/chat}
-      LM_MODELS_ENDPOINT: ${LM_MODELS_ENDPOINT:-/V1/models}
+      GIGACHAT_MODEL: ${GIGACHAT_MODEL:-GigaChat}
     restart: unless-stopped

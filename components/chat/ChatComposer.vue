@@ -31,7 +31,7 @@ const onKeydown = (event: KeyboardEvent) => {
       :disabled="props.disabled"
       :rows="4"
       autoresize
-      placeholder="Напиши сообщение... Enter - отправить, Shift+Enter - новая строка"
+      placeholder="Напиши сообщение... Enter — отправить, Shift+Enter — новая строка"
       @keydown="onKeydown"
     />
 
