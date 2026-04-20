@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import ChatComposer from '~/components/chat/ChatComposer.vue'
-import ChatMessages from '~/components/chat/ChatMessages.vue'
-import type { ChatMessage } from '~/types/chat'
+import { computed, ref } from 'vue'
+import type { ChatUiMessage } from '~/types/chat'
 import { useChatApi } from '~/composables/useChatApi'
 
-const messages = ref<ChatMessage[]>([
+const prompt = ref('')
+const messages = ref<ChatUiMessage[]>([
   {
     id: crypto.randomUUID(),
     role: 'assistant',
-    content: 'Привет. Напиши сообщение, я отвечу через GigaChat.',
-    createdAt: new Date().toISOString()
+    parts: [{ type: 'text', text: 'Привет. Напиши сообщение, я отвечу через GigaChat.' }]
   }
 ])
 const sending = ref(false)
@@ -18,27 +16,27 @@ const error = ref('')
 
 const { sendChat } = useChatApi()
 
-const handleSend = async (text: string) => {
-  if (!text.trim() || sending.value) return
+const chatStatus = computed(() => (sending.value ? 'submitted' : 'ready'))
+const canSubmit = computed(() => prompt.value.trim().length > 0 && !sending.value)
+
+const createTextMessage = (role: 'user' | 'assistant', text: string): ChatUiMessage => ({
+  id: crypto.randomUUID(),
+  role,
+  parts: [{ type: 'text', text }]
+})
+
+const handleSubmit = async () => {
+  const text = prompt.value.trim()
+  if (!text || sending.value) return
 
   error.value = ''
-  const userMessage: ChatMessage = {
-    id: crypto.randomUUID(),
-    role: 'user',
-    content: text.trim(),
-    createdAt: new Date().toISOString()
-  }
-  messages.value.push(userMessage)
+  messages.value.push(createTextMessage('user', text))
+  prompt.value = ''
   sending.value = true
 
   try {
     const answer = await sendChat(messages.value)
-    messages.value.push({
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: answer,
-      createdAt: new Date().toISOString()
-    })
+    messages.value.push(createTextMessage('assistant', answer))
   } catch (e: any) {
     error.value = e?.message || 'Ошибка при отправке сообщения'
   } finally {
@@ -56,16 +54,30 @@ const handleSend = async (text: string) => {
       </div>
     </template>
 
-    <div class="flex flex-col gap-4">
-      <ChatMessages :items="messages" />
+    <div class="space-y-4">
+      <UChatMessages
+        class="h-[52vh] overflow-y-auto pr-2"
+        :messages="messages"
+        :status="chatStatus"
+        should-auto-scroll
+        :assistant="{ avatar: { icon: 'i-lucide-bot' } }"
+        :user="{ avatar: { icon: 'i-lucide-user' } }"
+      />
 
       <UAlert v-if="error" color="error" variant="soft" :title="error" />
 
-      <ChatComposer
+      <UChatPrompt
+        v-model="prompt"
         :disabled="sending"
-        :loading="sending"
-        @submit="handleSend"
-      />
+        placeholder="Напиши сообщение... Enter — отправить, Shift+Enter — новая строка"
+        @submit.prevent="handleSubmit"
+      >
+        <template #footer>
+          <div class="flex justify-end pt-2">
+            <UChatPromptSubmit :status="chatStatus" :disabled="!canSubmit" />
+          </div>
+        </template>
+      </UChatPrompt>
     </div>
   </UCard>
 </template>

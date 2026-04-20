@@ -1,8 +1,13 @@
-import type { ChatMessage } from '~/types/chat'
+import type { ChatUiMessage } from '~/types/chat'
+
+type BackendMessage = {
+  role: ChatUiMessage['role']
+  content: string
+}
 
 type ChatPayload = {
   model: string
-  messages: ChatMessage[]
+  messages: BackendMessage[]
 }
 
 type ChatResponse = {
@@ -14,13 +19,21 @@ type ChatResponse = {
   }>
 }
 
+const toBackendMessage = (message: ChatUiMessage): BackendMessage => ({
+  role: message.role,
+  content: message.parts
+    .filter((part) => part.type === 'text')
+    .map((part) => part.text)
+    .join('\n')
+})
+
 export const useChatApi = () => {
   const config = useRuntimeConfig()
 
-  const sendChat = async (messages: ChatMessage[]): Promise<string> => {
+  const sendChat = async (messages: ChatUiMessage[]): Promise<string> => {
     const payload: ChatPayload = {
       model: config.public.gigachatModel,
-      messages
+      messages: messages.map(toBackendMessage)
     }
 
     const response = await $fetch<ChatResponse>(config.public.gigachatEndpoint, {

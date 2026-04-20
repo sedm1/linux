@@ -1,8 +1,12 @@
 export type ChatRole = 'user' | 'assistant' | 'system'
 
-export type ChatMessage = {
+export type ChatTextPart = {
+  type: 'text'
+  text: string
+}
+
+export type ChatUiMessage = {
   id: string
   role: ChatRole
-  content: string
-  createdAt: string
+  parts: ChatTextPart[]
 }
