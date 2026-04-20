@@ -134,18 +134,20 @@ onMounted(loadModels)
   <UCard class="border-white/10 bg-black/35 backdrop-blur-sm">
     <div class="space-y-4">
       <div class="flex flex-col gap-2 md:flex-row md:items-center">
-        <USelect
+        <USelectMenu
           v-model="selectedModel"
-          class="md:max-w-md"
+          class="w-full md:flex-1"
           :items="models"
           value-key="id"
           label-key="name"
+          searchable
+          :search-input="{ placeholder: 'Поиск модели...' }"
           :loading="loadingModels"
           :disabled="sending || loadingModels"
           placeholder="Выберите модель"
         />
         <UButton
-          class="md:ml-auto"
+          class="md:shrink-0"
           color="neutral"
           variant="soft"
           icon="i-lucide-refresh-cw"
