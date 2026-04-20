@@ -19,13 +19,18 @@ type ChatResponse = {
   }>
 }
 
-const toBackendMessage = (message: ChatUiMessage): BackendMessage => ({
-  role: message.role,
-  content: message.parts
+const toBackendMessage = (message: ChatUiMessage): BackendMessage => {
+  const text = message.parts
     .filter((part) => part.type === 'text')
     .map((part) => part.text)
     .join('\n')
-})
+    .trim()
+
+  return {
+    role: message.role,
+    content: text || '[Пользователь отправил изображение]'
+  }
+}
 
 export const useChatApi = () => {
   const config = useRuntimeConfig()

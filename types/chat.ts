@@ -5,8 +5,17 @@ export type ChatTextPart = {
   text: string
 }
 
+export type ChatFilePart = {
+  type: 'file'
+  mediaType: string
+  url: string
+  filename?: string
+}
+
+export type ChatPart = ChatTextPart | ChatFilePart
+
 export type ChatUiMessage = {
   id: string
   role: ChatRole
-  parts: ChatTextPart[]
+  parts: ChatPart[]
 }
