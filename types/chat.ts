@@ -10,6 +10,7 @@ export type ChatFilePart = {
   mediaType: string
   url: string
   filename?: string
+  attachmentId?: string
 }
 
 export type ChatPart = ChatTextPart | ChatFilePart

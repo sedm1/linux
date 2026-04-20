@@ -3,6 +3,7 @@ import type { ChatUiMessage } from '~/types/chat'
 type BackendMessage = {
   role: ChatUiMessage['role']
   content: string
+  attachments?: string[]
 }
 
 type ChatPayload = {
@@ -26,9 +27,14 @@ const toBackendMessage = (message: ChatUiMessage): BackendMessage => {
     .join('\n')
     .trim()
 
+  const attachments = message.parts
+    .filter((part) => part.type === 'file' && Boolean(part.attachmentId))
+    .map((part) => part.attachmentId as string)
+
   return {
     role: message.role,
-    content: text || '[Пользователь отправил изображение]'
+    content: text || '[Пользователь отправил изображение]',
+    ...(attachments.length > 0 ? { attachments } : {})
   }
 }
 

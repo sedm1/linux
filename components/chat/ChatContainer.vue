@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { ChatUiMessage } from '~/types/chat'
 import { useChatApi } from '~/composables/useChatApi'
 
+const config = useRuntimeConfig()
 const prompt = ref('')
 const selectedImage = ref<File | null>(null)
 const messages = ref<ChatUiMessage[]>([
@@ -18,7 +19,7 @@ const error = ref('')
 const { sendChat } = useChatApi()
 
 const chatStatus = computed(() => (sending.value ? 'streaming' : 'ready'))
-const canSubmit = computed(() => Boolean(prompt.value.trim()) || Boolean(selectedImage.value))
+const canSubmit = computed(() => !sending.value && (Boolean(prompt.value.trim()) || Boolean(selectedImage.value)))
 
 const readAsDataUrl = async (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -28,10 +29,26 @@ const readAsDataUrl = async (file: File): Promise<string> =>
     reader.readAsDataURL(file)
   })
 
+const uploadImage = async (file: File): Promise<string> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('purpose', 'general')
+
+  const response = await $fetch<{ id?: string }>(config.public.gigachatFilesEndpoint, {
+    method: 'POST',
+    body: formData
+  })
+
+  if (!response?.id) {
+    throw new Error('Не удалось загрузить фото в GigaChat')
+  }
+
+  return response.id
+}
+
 const handleSubmit = async () => {
   const text = prompt.value.trim()
   const image = selectedImage.value
-
   if ((!text && !image) || sending.value) return
 
   error.value = ''
@@ -39,16 +56,23 @@ const handleSubmit = async () => {
 
   try {
     const parts: ChatUiMessage['parts'] = []
+
     if (text) {
       parts.push({ type: 'text', text })
     }
+
     if (image) {
-      const imageUrl = await readAsDataUrl(image)
+      const [previewUrl, attachmentId] = await Promise.all([
+        readAsDataUrl(image),
+        uploadImage(image)
+      ])
+
       parts.push({
         type: 'file',
         mediaType: image.type || 'image/jpeg',
         filename: image.name,
-        url: imageUrl
+        url: previewUrl,
+        attachmentId
       })
     }
 
@@ -100,8 +124,9 @@ const handleSubmit = async () => {
       </UChatMessages>
 
       <UChatReasoning
+        v-if="sending"
         text="Модель анализирует запрос..."
-        :streaming="sending"
+        streaming
       />
 
       <UAlert v-if="error" color="error" variant="soft" :title="error" />
@@ -135,7 +160,7 @@ const handleSubmit = async () => {
         </template>
 
         <template #footer>
-          <div class="flex justify-end pt-2">
+          <div class="flex w-full justify-end pt-2">
             <UChatPromptSubmit :status="chatStatus" :disabled="!canSubmit" />
           </div>
         </template>
